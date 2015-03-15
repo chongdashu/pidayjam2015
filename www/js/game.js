@@ -51,6 +51,7 @@ Game.prototype.constructor = Game;
 
     p.initialize = function() {
         this.initRulesMap();
+
     };
 
     p.initRulesMap = function() {
@@ -81,17 +82,26 @@ Game.prototype.constructor = Game;
     p.create = function() {
         console.log("[Game], create()");
 
+        // create game physics
+        // -------------------
+        this.game.physics.startSystem(Phaser.Physics.ARCADE);
+
         // create player 
         // ----------------
-        this.game.me.player = this.game.add.sprite(100,100, "player");
+        this.game.me.player = this.game.add.sprite(0,0, "player");
+        this.game.me.player.anchor.set(0.5,0.5);
+        this.game.me.player.position.set(32,32);
         this.game.me.player.animations.add("up", [0,1,2,3,4,5,6,7,8], 10, true);
         this.game.me.player.animations.add("left", [9,10,11,12,13,14,15,16,17], 10, true);
         this.game.me.player.animations.add("down", [18,19,20,21,22,23,24,25,26], 10, true);
         this.game.me.player.animations.add("right", [27,28,29,30,31,32,33,34,35], 10, true);
-        this.game.me.player.animations.play("up");
-        this.game.me.player.animations.play("left");
-        this.game.me.player.animations.play("right");
-        this.game.me.player.animations.play("down");
+        
+
+
+        // create physics for sprites
+        this.game.physics.enable( [ this.game.me.player ], Phaser.Physics.ARCADE);
+
+
 
 
         // create game rules
@@ -139,6 +149,7 @@ Game.prototype.constructor = Game;
 
     p.renderDebug = function() {
         this.game.debug.text("Pi Game Jam 2015", 32, 32);
+        this.game.debug.body(this.player);
     };
 
     p.printScreen = function() {
