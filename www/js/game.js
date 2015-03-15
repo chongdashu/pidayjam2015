@@ -47,7 +47,7 @@ Game.prototype.constructor = Game;
     p.rulesMap = {};
 
     // Player sprite
-    p.player = {};
+    p.player = null;
 
     p.initialize = function() {
         this.initRulesMap();
@@ -83,15 +83,15 @@ Game.prototype.constructor = Game;
 
         // create player 
         // ----------------
-        this.player = this.game.add.sprite(100,100, "player");
-        this.player.animations.add("up", [0,1,2,3,4,5,6,7,8], 10, true);
-        this.player.animations.add("left", [9,10,11,12,13,14,15,16,17], 10, true);
-        this.player.animations.add("right", [18,19,20,21,22,23,24,25,26], 10, true);
-        this.player.animations.add("down", [27,28,29,30,31,32,33,34,35], 10, true);
-        this.player.animations.play("up");
-        this.player.animations.play("left");
-        this.player.animations.play("right");
-        this.player.animations.play("down");
+        this.game.me.player = this.game.add.sprite(100,100, "player");
+        this.game.me.player.animations.add("up", [0,1,2,3,4,5,6,7,8], 10, true);
+        this.game.me.player.animations.add("left", [9,10,11,12,13,14,15,16,17], 10, true);
+        this.game.me.player.animations.add("down", [18,19,20,21,22,23,24,25,26], 10, true);
+        this.game.me.player.animations.add("right", [27,28,29,30,31,32,33,34,35], 10, true);
+        this.game.me.player.animations.play("up");
+        this.game.me.player.animations.play("left");
+        this.game.me.player.animations.play("right");
+        this.game.me.player.animations.play("down");
 
 
         // create game rules
@@ -111,7 +111,24 @@ Game.prototype.constructor = Game;
     };
 
     p.update = function() {
-      // console.log("[Game], update()");
+      
+      this.game.me.updatePlayer();
+
+    };
+
+    p.updatePlayer = function() {
+        if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+            this.player.animations.play("left");
+        }
+        if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+            this.player.animations.play("right");
+        }
+        if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+            this.player.animations.play("up");
+        }
+         if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+            this.player.animations.play("down");
+        }
     };
 
     p.render = function() {
