@@ -27,7 +27,7 @@ Game.prototype.constructor = Game;
 
 
     Game.RULE_LIVES = "rule:lives";
-    Game.RULE_ENEMIES = "rule:lives";
+    Game.RULE_ENEMIES = "rule:enemies";
     Game.RULE_PLAYER_DAMAGE = "rule:player_damager";
     Game.RULE_ENEMY_DAMAGE = "rule:enemy_damage";
     Game.RULE_COINS = "rule:coins";
@@ -52,6 +52,8 @@ Game.prototype.constructor = Game;
 
     p.coinText = null;
     p.coinScore = 0;
+
+    p.ruleTexts = null;
 
     p.initialize = function() {
 
@@ -109,9 +111,17 @@ Game.prototype.constructor = Game;
     };
 
     p.createRules = function() {
+
+        var rules = Game.RULES.slice(0);
+        var piString = String(Math.PI);
+
         var i=0;
-        for (i=0; i < Game.RULES.length; i++) {
-            console.log("Creating rules from PI:");
+        for (i=0; i < piString.length; i++) {
+            if (isNumeric(piString[i])) {
+                var digit = parseInt(piString[i], 10);
+                var rule = Phaser.ArrayUtils.removeRandomItem(rules);
+                console.log("Creating rules from PI: %s -> %s", digit, rule);
+            }
         }
     };
 
