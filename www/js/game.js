@@ -25,11 +25,35 @@ Game.prototype.constructor = Game;
 
     Game.TITLE = "Pi Game Jam 2015";
 
+
+    Game.RULE_LIVES = "rule:lives";
+    Game.RULE_ENEMIES = "rule:lives";
+    Game.RULE_PLAYER_DAMAGE = "rule:player_damager";
+    Game.RULE_ENEMY_DAMAGE = "rule:enemy_damage";
+    Game.RULE_COINS = "rule:coins";
+
+    Game.RULES = [
+        Game.RULE_LIVES,
+        Game.RULE_ENEMIES,
+        Game.RULE_PLAYER_DAMAGE,
+        Game.RULE_ENEMY_DAMAGE,
+        Game.RULE_COINS,
+    ];
+
     // Phaser game.
     p.game = null;
 
+    // Rules map.
+    p.rulesMap = {};
+
+    // Player sprite
+    p.player = {};
+
     p.initialize = function() {
-        
+        this.initRulesMap();
+    };
+
+    p.initRulesMap = function() {
     };
 
     p.initPhaser = function(div) {
@@ -44,14 +68,24 @@ Game.prototype.constructor = Game;
                 update: this.update,
                 render : this.render
             });
+        this.game.me = this;
     };
 
     p.preload = function() {
         console.log("[Game], preload()");
+
+        this.game.load.spritesheet("player",
+            "res/soldier.png", 64, 64);
     };
 
     p.create = function() {
         console.log("[Game], create()");
+
+        // create player 
+        // ----------------
+        this.player = this.game.add.sprite(100,100, "player");
+        this.player.animations.add("up");
+        this.player.animations.play("up", true);
 
         // create game rules
         // -----------------
@@ -74,6 +108,12 @@ Game.prototype.constructor = Game;
     };
 
     p.render = function() {
+        
+        this.game.me.renderDebug();
+    
+    };
+
+    p.renderDebug = function() {
         this.game.debug.text("Pi Game Jam 2015", 32, 32);
     };
 
