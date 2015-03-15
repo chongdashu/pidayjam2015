@@ -84,8 +84,15 @@ Game.prototype.constructor = Game;
         // create player 
         // ----------------
         this.player = this.game.add.sprite(100,100, "player");
-        this.player.animations.add("up");
-        this.player.animations.play("up", true);
+        this.player.animations.add("up", [0,1,2,3,4,5,6,7,8], 10, true);
+        this.player.animations.add("left", [9,10,11,12,13,14,15,16,17], 10, true);
+        this.player.animations.add("right", [18,19,20,21,22,23,24,25,26], 10, true);
+        this.player.animations.add("down", [27,28,29,30,31,32,33,34,35], 10, true);
+        this.player.animations.play("up");
+        this.player.animations.play("left");
+        this.player.animations.play("right");
+        this.player.animations.play("down");
+
 
         // create game rules
         // -----------------
