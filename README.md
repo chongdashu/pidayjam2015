@@ -11,7 +11,7 @@ A simple python script that uses the digits of Pi to help you to determine value
 
 Usage:
 
-`
+```
 > import pypi-roulette
 
 > roulette_one("lives")
@@ -22,4 +22,4 @@ Usage:
 1 rounds
 4 bosses
 1 lives
-`
+```
