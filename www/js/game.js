@@ -49,7 +49,7 @@ Game.prototype.constructor = Game;
     // Player sprite
     p.player = null;
 
-    p.coins = [];
+    p.coins = null;
 
     p.initialize = function() {
         this.initRulesMap();
@@ -106,6 +106,10 @@ Game.prototype.constructor = Game;
         this.game.me.player.body.setSize(48,48,0,8);
 
         // create coin
+        this.game.me.coins = this.game.add.group();
+        this.game.me.coins.enableBody = true;
+        this.game.me.coins.physicsBodyType = Phaser.Physics.ARCADE;
+        
         this.game.me.createCoin(50,50);
 
         
@@ -129,22 +133,33 @@ Game.prototype.constructor = Game;
     };
 
     p.createCoin = function(x, y) {
-        var coin = this.game.add.sprite(x, y, "coin");
+        var coin = this.coins.create(x, y, "coin");
         coin.animations.add("default", null, 10, true);
         coin.animations.play("default");
-        this.game.physics.enable(coin,Phaser.Physics.ARCADE);
+        coin.name = "coin_" + this.coins.length;
+        // this.game.physics.enable(coin,Phaser.Physics.ARCADE);
 
-        this.coins.push(coin);
+    };
 
+    p.onPlayerCoinsOverlap = function(player, coin) {
+        console.log("onPlayerCoinsOverlap()");
+        coin.kill();
     };
 
     p.update = function() {
       
+      this.game.me.updateCollisions();
       this.game.me.updatePlayer();
 
     };
 
+    p.updateCollisions = function() {
+        this.game.physics.arcade.overlap(this.player, this.coins, this.onPlayerCoinsOverlap, null, this );
+    };
+
     p.updatePlayer = function() {
+
+
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
             this.player.animations.play("left");
             this.player.body.velocity.x = -100;
@@ -197,9 +212,12 @@ Game.prototype.constructor = Game;
 
     p.renderDebugCoins = function() {
         var i=0;
-        for (i=0; i < this.coins.length; i++) {
-            this.game.debug.body(this.coins[i]);
-        }
+        var me = this;
+        // this.game.debug.body(this.coins);
+        this.coins.forEach(function(coin) {
+            me.game.debug.body(coin);
+        });
+        
     };
 
     p.printScreen = function() {
