@@ -23,3 +23,8 @@ Usage:
 4 bosses
 1 lives
 ```
+
+## Credits
+
+### Art
++ ["Items and Elements" by Jason Em (OpenGameArt)])http://opengameart.org/content/items-and-elements)

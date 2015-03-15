@@ -49,6 +49,8 @@ Game.prototype.constructor = Game;
     // Player sprite
     p.player = null;
 
+    p.coins = [];
+
     p.initialize = function() {
         this.initRulesMap();
 
@@ -77,6 +79,11 @@ Game.prototype.constructor = Game;
 
         this.game.load.spritesheet("player",
             "res/soldier.png", 64, 64);
+
+        this.game.load.spritesheet("coin",
+            "res/coin.png", 16, 16);
+
+
     };
 
     p.create = function() {
@@ -90,19 +97,17 @@ Game.prototype.constructor = Game;
         // ----------------
         this.game.me.player = this.game.add.sprite(0,0, "player");
         this.game.me.player.anchor.set(0.5,0.5);
-        this.game.me.player.position.set(32,32);
+        this.game.me.player.position.set(32,96);
         this.game.me.player.animations.add("up", [0,1,2,3,4,5,6,7,8], 10, true);
         this.game.me.player.animations.add("left", [9,10,11,12,13,14,15,16,17], 10, true);
         this.game.me.player.animations.add("down", [18,19,20,21,22,23,24,25,26], 10, true);
         this.game.me.player.animations.add("right", [27,28,29,30,31,32,33,34,35], 10, true);
+
+        // create coin
+        this.game.me.createCoin(50,50);
         
-
-
         // create physics for sprites
         this.game.physics.enable( [ this.game.me.player ], Phaser.Physics.ARCADE);
-
-
-
 
         // create game rules
         // -----------------
@@ -120,6 +125,13 @@ Game.prototype.constructor = Game;
 
     };
 
+    p.createCoin = function(x, y) {
+        var coin = this.game.add.sprite(x, y, "coin");
+        coin.animations.add("default", null, 10, true);
+        coin.animations.play("default");
+
+    };
+
     p.update = function() {
       
       this.game.me.updatePlayer();
@@ -129,16 +141,35 @@ Game.prototype.constructor = Game;
     p.updatePlayer = function() {
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
             this.player.animations.play("left");
+            this.player.body.velocity.x = -100;
         }
+        
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
             this.player.animations.play("right");
+            this.player.body.velocity.x = 100;
         }
+        
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
             this.player.animations.play("up");
+            this.player.body.velocity.y = -100;
         }
-         if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+        
+        if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
             this.player.animations.play("down");
+            this.player.body.velocity.y = 100;
         }
+
+        if (!this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT) &&
+            !this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+            this.player.body.velocity.x = 0;
+        }
+
+        if (!this.game.input.keyboard.isDown(Phaser.Keyboard.UP) &&
+            !this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+            this.player.body.velocity.y = 0;
+        }
+
+
     };
 
     p.render = function() {
@@ -148,7 +179,7 @@ Game.prototype.constructor = Game;
     };
 
     p.renderDebug = function() {
-        this.game.debug.text("Pi Game Jam 2015", 32, 32);
+        this.game.debug.text("Pi Game Jam 2015", 16, 16);
         this.game.debug.body(this.player);
     };
 
