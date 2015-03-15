@@ -52,6 +52,21 @@ Game.prototype.constructor = Game;
 
     p.create = function() {
         console.log("[Game], create()");
+
+        // create game rules
+        // -----------------
+        // rules:
+        //  1) number of lives  
+        //  2) number of enemies 
+        //  3) number of enemies multiplier
+        //  4) number of coins
+        //  5) points per coins
+        //  6) points per enemy
+        //  7) number of shots per clip
+        //  8) x-speed 
+        //  9) y-speed
+        //  10) number of random drops
+
     };
 
     p.update = function() {
@@ -60,6 +75,10 @@ Game.prototype.constructor = Game;
 
     p.render = function() {
         this.game.debug.text("Pi Game Jam 2015", 32, 32);
+    };
+
+    p.printScreen = function() {
+        // TODO: find a way to print the screen.
     };
 
 
