@@ -41,7 +41,8 @@ Game.prototype.constructor = Game;
             {
                 preload: this.preload,
                 create: this.create,
-                update: this.update
+                update: this.update,
+                render : this.render
             });
     };
 
@@ -55,6 +56,10 @@ Game.prototype.constructor = Game;
 
     p.update = function() {
       // console.log("[Game], update()");
+    };
+
+    p.render = function() {
+        this.game.debug.text("Pi Game Jam 2015", 32, 32);
     };
 
 
