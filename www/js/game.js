@@ -107,6 +107,7 @@ Game.prototype.constructor = Game;
 
         // create coin
         this.game.me.createCoin(50,50);
+
         
         // create physics for sprites
         
@@ -131,6 +132,9 @@ Game.prototype.constructor = Game;
         var coin = this.game.add.sprite(x, y, "coin");
         coin.animations.add("default", null, 10, true);
         coin.animations.play("default");
+        this.game.physics.enable(coin,Phaser.Physics.ARCADE);
+
+        this.coins.push(coin);
 
     };
 
@@ -182,8 +186,20 @@ Game.prototype.constructor = Game;
 
     p.renderDebug = function() {
         this.game.debug.text("Pi Game Jam 2015", 16, 16);
-        this.game.debug.bodyInfo(this.player, 600,16);
+        this.renderDebugPlayer();
+        this.renderDebugCoins();
+    };
+
+    p.renderDebugPlayer = function() {
         this.game.debug.body(this.player);
+        this.game.debug.bodyInfo(this.player, 600,16);
+    };
+
+    p.renderDebugCoins = function() {
+        var i=0;
+        for (i=0; i < this.coins.length; i++) {
+            this.game.debug.body(this.coins[i]);
+        }
     };
 
     p.printScreen = function() {
