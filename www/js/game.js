@@ -48,8 +48,10 @@ Game.prototype.constructor = Game;
 
     // Player sprite
     p.player = null;
-
     p.coins = null;
+
+    p.coinText = null;
+    p.coinScore = 0;
 
     p.initialize = function() {
         this.initRulesMap();
@@ -82,8 +84,6 @@ Game.prototype.constructor = Game;
 
         this.game.load.spritesheet("coin",
             "res/coin.png", 16, 16);
-
-
     };
 
     p.create = function() {
@@ -95,27 +95,19 @@ Game.prototype.constructor = Game;
 
         // create player 
         // ----------------
-        this.game.me.player = this.game.add.sprite(0,0, "player");
-        this.game.me.player.anchor.set(0.5,0.5);
-        this.game.me.player.position.set(32,96);
-        this.game.me.player.animations.add("up", [0,1,2,3,4,5,6,7,8], 10, true);
-        this.game.me.player.animations.add("left", [9,10,11,12,13,14,15,16,17], 10, true);
-        this.game.me.player.animations.add("down", [18,19,20,21,22,23,24,25,26], 10, true);
-        this.game.me.player.animations.add("right", [27,28,29,30,31,32,33,34,35], 10, true);
-        this.game.physics.enable(this.game.me.player, Phaser.Physics.ARCADE);
-        this.game.me.player.body.setSize(48,48,0,8);
+        this.game.me.createPlayer();
 
-        // create coin
-        this.game.me.coins = this.game.add.group();
-        this.game.me.coins.enableBody = true;
-        this.game.me.coins.physicsBodyType = Phaser.Physics.ARCADE;
-        
-        this.game.me.createCoin(50,50);
+        // create coins
+        // ------------
+        this.game.me.createCoins();
+
+        // create text: coins
+        this.game.me.createCoinsText();
+
 
         
         // create physics for sprites
         
-
         // create game rules
         // -----------------
         // rules:
@@ -132,6 +124,46 @@ Game.prototype.constructor = Game;
 
     };
 
+    p.createCoinsText = function() {
+        var scoreString = 'Coins : ';
+        this.scoreText = this.game.add.text(400, 50,
+                        scoreString + this.coinScore,
+                        {
+                            font: '34px Tahoma',
+                            fill: '#fff'
+                        });
+        this.scoreText.anchor.set(0.5,0.5);
+    };
+
+    p.createPlayer = function() {
+        this.player = this.game.add.sprite(0,0, "player");
+        this.player.anchor.set(0.5,0.5);
+        this.player.position.set(32,96);
+        this.player.animations.add("up", [0,1,2,3,4,5,6,7,8], 10, true);
+        this.player.animations.add("left", [9,10,11,12,13,14,15,16,17], 10, true);
+        this.player.animations.add("down", [18,19,20,21,22,23,24,25,26], 10, true);
+        this.player.animations.add("right", [27,28,29,30,31,32,33,34,35], 10, true);
+        this.game.physics.enable(this.player, Phaser.Physics.ARCADE);
+        this.player.body.setSize(48,48,0,8);
+    };
+
+    p.createCoins = function(count) {
+        if (!count || typeof(count) == "None") {
+            count = 10;
+        }
+        this.game.me.coins = this.game.add.group();
+        this.game.me.coins.enableBody = true;
+        this.game.me.coins.physicsBodyType = Phaser.Physics.ARCADE;
+
+        var i=0;
+        for (i=0; i<count; i++) {
+            this.createCoin(
+                this.game.rnd.between(100,700),
+                this.game.rnd.between(100,500));
+        }
+        
+    };
+
     p.createCoin = function(x, y) {
         var coin = this.coins.create(x, y, "coin");
         coin.animations.add("default", null, 10, true);
@@ -144,6 +176,8 @@ Game.prototype.constructor = Game;
     p.onPlayerCoinsOverlap = function(player, coin) {
         console.log("onPlayerCoinsOverlap()");
         coin.kill();
+        this.coinScore++;
+        this.scoreText.text = "Coins: " + this.coinScore;
     };
 
     p.update = function() {
@@ -194,13 +228,13 @@ Game.prototype.constructor = Game;
     };
 
     p.render = function() {
-        
-        this.game.me.renderDebug();
+        this.game.debug.text("Pi Game Jam 2015", 16, 16);
+        // this.game.me.renderDebug();
     
     };
 
     p.renderDebug = function() {
-        this.game.debug.text("Pi Game Jam 2015", 16, 16);
+        
         this.renderDebugPlayer();
         this.renderDebugCoins();
     };
