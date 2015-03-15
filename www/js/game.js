@@ -54,11 +54,7 @@ Game.prototype.constructor = Game;
     p.coinScore = 0;
 
     p.initialize = function() {
-        this.initRulesMap();
 
-    };
-
-    p.initRulesMap = function() {
     };
 
     p.initPhaser = function(div) {
@@ -89,6 +85,10 @@ Game.prototype.constructor = Game;
     p.create = function() {
         console.log("[Game], create()");
 
+        // create rules
+        // ------------
+        this.game.me.createRules();
+
         // create game physics
         // -------------------
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -102,26 +102,17 @@ Game.prototype.constructor = Game;
         this.game.me.createCoins();
 
         // create text: coins
+        // -------------------
         this.game.me.createCoinsText();
 
 
-        
-        // create physics for sprites
-        
-        // create game rules
-        // -----------------
-        // rules:
-        //  1) number of lives  
-        //  2) number of enemies 
-        //  3) number of enemies multiplier
-        //  4) number of coins
-        //  5) points per coins
-        //  6) points per enemy
-        //  7) number of shots per clip
-        //  8) x-speed 
-        //  9) y-speed
-        //  10) number of random drops
+    };
 
+    p.createRules = function() {
+        var i=0;
+        for (i=0; i < Game.RULES.length; i++) {
+            console.log("Creating rules from PI:");
+        }
     };
 
     p.createCoinsText = function() {
@@ -222,6 +213,11 @@ Game.prototype.constructor = Game;
         if (!this.game.input.keyboard.isDown(Phaser.Keyboard.UP) &&
             !this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
             this.player.body.velocity.y = 0;
+        }
+
+        if (this.player.body.velocity.y === 0 && this.player.body.velocity.x === 0) {
+            
+            this.player.animations.stop(null, true);
         }
 
 
