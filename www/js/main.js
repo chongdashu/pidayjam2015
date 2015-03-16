@@ -12,3 +12,4 @@ var init = function() {
     var gameDiv = $(".game").get(0);
     game.initPhaser(gameDiv);
 };
+

@@ -34,6 +34,9 @@ Game.prototype.constructor = Game;
     Game.RULE_ENEMY_DAMAGE = "rule:enemy_damage";
     Game.RULE_COINS = "rule:coins";
 
+    Game.STATE_PLAY = "state:play";
+    Game.STATE_GAMEOVER = "state:gameover";
+
     Game.RULES = [
         Game.RULE_LIVES,
         Game.RULE_ENEMIES,
@@ -46,6 +49,8 @@ Game.prototype.constructor = Game;
 
     // Phaser game.
     p.game = null;
+
+    p.gameState = null;
 
     // Rules map.
     p.rulesMap = {};
@@ -64,8 +69,11 @@ Game.prototype.constructor = Game;
     p.enemiesKilledScore = 0;
     p.coinScore = 0;
 
-    p.initialize = function() {
+    // Emitter
+    // -------
 
+    p.initialize = function() {
+        $(".ui").hide();
     };
 
     p.initPhaser = function(div) {
@@ -97,6 +105,12 @@ Game.prototype.constructor = Game;
 
     p.create = function() {
         console.log("[Game], create()");
+
+        this.game.me.state = Game.STATE_PLAY;
+
+        // hide UI
+        // -------
+        $(".ui").hide();
 
         // create rules
         // ------------
@@ -132,6 +146,8 @@ Game.prototype.constructor = Game;
     p.createStatus = function() {
         this.livesScore = parseInt(this.rulesMap[Game.RULE_LIVES],10);
         this.playerDamage = parseInt(this.rulesMap[Game.RULE_PLAYER_DAMAGE],10);
+        this.playerXSpeed = parseInt(this.rulesMap[Game.RULE_PLAYER_XSPEED],10);
+        this.playerYSpeed = parseInt(this.rulesMap[Game.RULE_PLAYER_YSPEED],10);
     };
 
 
@@ -175,9 +191,11 @@ Game.prototype.constructor = Game;
 
         this.statusTextGroup = this.game.add.group();
 
-        this.statusTextGroup.add(this.livesText = this.game.add.text(700, 62, "", fontProp));
-        this.statusTextGroup.add(this.coinsText = this.game.add.text(700, 50, "", fontProp));
-        this.statusTextGroup.add(this.playerDamageText = this.game.add.text(700, 74, "" + this.playerDamage, fontProp));
+        this.statusTextGroup.add(this.livesText = this.game.add.text(700, 50+12*(this.statusTextGroup.length), "", fontProp));
+        this.statusTextGroup.add(this.coinsText = this.game.add.text(700, 50+12*(this.statusTextGroup.length), "", fontProp));
+        this.statusTextGroup.add(this.playerDamageText = this.game.add.text(700, 50+12*(this.statusTextGroup.length), "" + this.playerDamage, fontProp));
+        this.statusTextGroup.add(this.playerXSpeedText = this.game.add.text(700, 50+12*(this.statusTextGroup.length), "" + this.playerXSpeed, fontProp));
+        this.statusTextGroup.add(this.playerYSpeedText = this.game.add.text(700, 50+12*(this.statusTextGroup.length), "" + this.playerYSpeed, fontProp));
 
     };
 
@@ -192,6 +210,7 @@ Game.prototype.constructor = Game;
             var y = this.game.rnd.between(100,500);
                 
             enemy = this.enemies.create(x, y, "bat");
+            enemy.anchor.set(0.5, 0.5);
             enemy.animations.add("up", [0,1,2], 10, true);
             enemy.animations.add("left", [3,4,5], 10, true);
             enemy.animations.add("down", [6,7,8], 10, true);
@@ -239,6 +258,12 @@ Game.prototype.constructor = Game;
 
     };
 
+    p.onPlayerEnemyOverlap = function(player, enemy) {
+        console.log("onPlayerEnemyOverlap()");
+        enemy.kill();
+        this.livesScore--;
+    };
+
     p.onPlayerCoinsOverlap = function(player, coin) {
         console.log("onPlayerCoinsOverlap()");
         coin.kill();
@@ -246,18 +271,39 @@ Game.prototype.constructor = Game;
     };
 
     p.update = function() {
-      
-      this.game.me.updateCollisions();
-      this.game.me.updatePlayer();
-      this.game.me.updateEnemies();
-      this.game.me.updateStatusText();
+        
+        if (this.game.me.state == Game.STATE_PLAY) {
+            this.game.me.updateCollisions();
+            this.game.me.updatePlayer();
+            this.game.me.updateEnemies();
+        }
 
+        this.game.me.updateStatusText();
+        this.game.me.updateGameState();
+
+    };
+
+    p.updateGameState = function() {
+        if (this.livesScore <= 0) {
+            this.gameOver();
+            this.player.kill();
+        }
+
+    };
+
+    p.gameOver = function() {
+        if (this.state != Game.STATE_GAMEOVER) {
+            this.state = Game.STATE_GAMEOVER;
+            $(".ui").fadeIn(250);
+        }
     };
 
     p.updateStatusText = function() {
         this.coinsText.text = "Coins: " + this.coinScore + "/" + this.rulesMap[Game.RULE_COINS];
-        this.livesText.text = "Lives: " + this.livesScore;
+        this.livesText.text = "Lives: " + this.livesScore + "/" + this.rulesMap[Game.RULE_LIVES];
         this.playerDamageText.text = "Player Damage: " + this.playerDamage;
+        this.playerXSpeedText.text = "Player X-Speed: " + this.playerXSpeed;
+        this.playerYSpeedText.text = "Player Y-Speed: " + this.playerYSpeed;
 
         this.statusTextGroup.position.set(
             -10 -this.statusTextGroup.width/2 , 0);
@@ -265,12 +311,13 @@ Game.prototype.constructor = Game;
 
     p.updateCollisions = function() {
         this.game.physics.arcade.overlap(this.player, this.coins, this.onPlayerCoinsOverlap, null, this );
+        this.game.physics.arcade.overlap(this.player, this.enemies, this.onPlayerEnemyOverlap, null, this );
     };
 
     p.updateEnemies = function() {
         var me = this;
         this.enemies.forEach(function(enemy) {
-            me.game.physics.arcade.moveToObject(enemy, me.player, 30); 
+            me.game.physics.arcade.moveToObject(enemy, me.player, me.game.rnd.between(30,50));
         });
     };
 
@@ -278,22 +325,22 @@ Game.prototype.constructor = Game;
 
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
             this.player.animations.play("left");
-            this.player.body.velocity.x = -100;
+            this.player.body.velocity.x = -50 * this.rulesMap[Game.RULE_PLAYER_XSPEED];
         }
         
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
             this.player.animations.play("right");
-            this.player.body.velocity.x = 100;
+            this.player.body.velocity.x = 50 * this.rulesMap[Game.RULE_PLAYER_XSPEED];
         }
         
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
             this.player.animations.play("up");
-            this.player.body.velocity.y = -100;
+            this.player.body.velocity.y = -50 * this.rulesMap[Game.RULE_PLAYER_YSPEED];
         }
         
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
             this.player.animations.play("down");
-            this.player.body.velocity.y = 100;
+            this.player.body.velocity.y = 50 * this.rulesMap[Game.RULE_PLAYER_YSPEED];
         }
 
         if (!this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT) &&
