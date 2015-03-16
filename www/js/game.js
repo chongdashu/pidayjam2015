@@ -36,6 +36,7 @@ Game.prototype.constructor = Game;
 
     Game.STATE_PLAY = "state:play";
     Game.STATE_GAMEOVER = "state:gameover";
+    Game.STATE_WIN = "state:win";
 
     Game.RULES = [
         Game.RULE_LIVES,
@@ -145,6 +146,7 @@ Game.prototype.constructor = Game;
 
     p.createStatus = function() {
         this.livesScore = parseInt(this.rulesMap[Game.RULE_LIVES],10);
+        this.coinScore = 0;
         this.playerDamage = parseInt(this.rulesMap[Game.RULE_PLAYER_DAMAGE],10);
         this.playerXSpeed = parseInt(this.rulesMap[Game.RULE_PLAYER_XSPEED],10);
         this.playerYSpeed = parseInt(this.rulesMap[Game.RULE_PLAYER_YSPEED],10);
@@ -284,16 +286,35 @@ Game.prototype.constructor = Game;
     };
 
     p.updateGameState = function() {
+
+        if (this.coinScore >= this.rulesMap[Game.RULE_COINS]) {
+            this.gameWin();
+        }
         if (this.livesScore <= 0) {
             this.gameOver();
-            this.player.kill();
         }
 
     };
 
+    p.gameWin = function() {
+        if (this.state != Game.STATE_WIN) {
+            this.gameWin();
+        }
+    };
+
     p.gameOver = function() {
         if (this.state != Game.STATE_GAMEOVER) {
+            this.player.kill();
             this.state = Game.STATE_GAMEOVER;
+            $("#game-label").html("YOU LOSE! GAME OVER!");
+            $(".ui").fadeIn(250);
+        }
+    };
+
+    p.gameWin = function() {
+        if (this.state != Game.STATE_WIN) {
+            this.state = Game.STATE_WIN;
+            $("#game-label").html("YOU WIN! HOORAY!");
             $(".ui").fadeIn(250);
         }
     };
