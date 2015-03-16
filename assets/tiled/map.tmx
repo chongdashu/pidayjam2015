@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="20" height="15" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="grass" tilewidth="32" tileheight="32">
+  <image source="../LPC Base Assets/tiles/grass.png" width="96" height="192"/>
+ </tileset>
+ <tileset firstgid="19" name="dirt" tilewidth="32" tileheight="32">
+  <image source="../LPC Base Assets/tiles/dirt.png" width="96" height="192"/>
+ </tileset>
+ <tileset firstgid="37" name="rock" tilewidth="32" tileheight="32">
+  <image source="../LPC Base Assets/tiles/rock.png" width="64" height="32"/>
+ </tileset>
+ <layer name="backgroundLayer" width="20" height="15">
+  <data encoding="base64" compression="zlib">
+   eJxjZ2Bg4KAS5gRiLiDmphLmGTVv1LxR84a0ebxAzEclzA/EAEuXDOU=
+  </data>
+ </layer>
+ <layer name="blockingLayer" width="20" height="15">
+  <data encoding="base64" compression="zlib">
+   eJxjYKA+UKUSRjaPGm4aNW/UvFHziDOPmvmXmgAAvEEIYw==
+  </data>
+ </layer>
+</map>

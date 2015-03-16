@@ -102,6 +102,13 @@ Game.prototype.constructor = Game;
             "res/coin.png", 16, 16);
         this.game.load.spritesheet("bat",
             "res/bat.png", 32, 32);
+
+        this.game.load.tilemap("map_1",
+            "res/map_1.json", null, Phaser.Tilemap.TILED_JSON);
+
+        this.game.load.image("grass", "res/grass.png");
+        this.game.load.image("dirt", "res/dirt.png");
+        this.game.load.image("rock", "res/rock.png");
     };
 
     p.create = function() {
@@ -125,6 +132,10 @@ Game.prototype.constructor = Game;
         // -------------------
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
+        // create tilemap
+        // --------------
+        this.game.me.createMap();
+
         // create player 
         // ----------------
         this.game.me.createPlayer();
@@ -141,6 +152,22 @@ Game.prototype.constructor = Game;
         // -------------------
         this.game.me.createStatusText();
 
+
+    };
+
+    p.createMap = function() {
+        this.map = this.game.add.tilemap("map_1");
+        this.map.addTilesetImage("grass");
+        this.map.addTilesetImage("dirt");
+        this.map.addTilesetImage("rock");
+
+        this.mapLayerBackground = this.map.createLayer("backgroundLayer");
+        this.mapLayerBlocking = this.map.createLayer("blockingLayer");
+
+        this.map.setCollisionBetween(1, 40, true, 'blockingLayer');
+
+        this.mapLayerBackground.resizeWorld();
+        this.mapLayerBlocking.resizeWorld();
 
     };
 
@@ -232,6 +259,8 @@ Game.prototype.constructor = Game;
         this.player.animations.add("right", [27,28,29,30,31,32,33,34,35], 10, true);
         this.game.physics.enable(this.player, Phaser.Physics.ARCADE);
         this.player.body.setSize(48,48,0,8);
+
+        // this.player.body.collideWorldBounds = true;
     };
 
     p.createCoins = function(count) {
@@ -314,6 +343,7 @@ Game.prototype.constructor = Game;
     p.gameWin = function() {
         if (this.state != Game.STATE_WIN) {
             this.state = Game.STATE_WIN;
+            this.player.body.velocity.set(0,0);
             $("#game-label").html("YOU WIN! HOORAY!");
             $(".ui").fadeIn(250);
         }
@@ -333,34 +363,54 @@ Game.prototype.constructor = Game;
     p.updateCollisions = function() {
         this.game.physics.arcade.overlap(this.player, this.coins, this.onPlayerCoinsOverlap, null, this );
         this.game.physics.arcade.overlap(this.player, this.enemies, this.onPlayerEnemyOverlap, null, this );
+        this.game.physics.arcade.collide(this.player, this.mapLayerBlocking);
     };
 
     p.updateEnemies = function() {
         var me = this;
         this.enemies.forEach(function(enemy) {
             me.game.physics.arcade.moveToObject(enemy, me.player, me.game.rnd.between(30,50));
+            
+            if (Math.abs(enemy.body.velocity.x) > Math.abs(enemy.body.velocity.y)) {
+                if (enemy.body.velocity.x > 0) {
+                    enemy.animations.play("right");
+                }
+                else if (enemy.body.velocity.x < 0) {
+                    enemy.animations.play("left");
+                }
+            }
+            else {
+                 if (enemy.body.velocity.y > 0) {
+                    enemy.animations.play("down");
+                }
+                else if (enemy.body.velocity.y < 0) {
+                    enemy.animations.play("up");
+                }
+            }
+            
+            
         });
     };
 
     p.updatePlayer = function() {
 
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-            this.player.animations.play("left");
+            
             this.player.body.velocity.x = -50 * this.rulesMap[Game.RULE_PLAYER_XSPEED];
         }
         
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-            this.player.animations.play("right");
+            
             this.player.body.velocity.x = 50 * this.rulesMap[Game.RULE_PLAYER_XSPEED];
         }
         
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
-            this.player.animations.play("up");
+           
             this.player.body.velocity.y = -50 * this.rulesMap[Game.RULE_PLAYER_YSPEED];
         }
         
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
-            this.player.animations.play("down");
+            
             this.player.body.velocity.y = 50 * this.rulesMap[Game.RULE_PLAYER_YSPEED];
         }
 
@@ -378,6 +428,12 @@ Game.prototype.constructor = Game;
             
             this.player.animations.stop(null, true);
         }
+        else if (Math.abs(this.player.body.velocity.x) > Math.abs(this.player.body.velocity.y)) {
+            this.player.animations.play(this.player.body.velocity.x > 0 ? "right" : "left");
+        }
+        else {
+            this.player.animations.play(this.player.body.velocity.y > 0 ? "down" : "up");
+        }
 
 
     };
@@ -390,6 +446,8 @@ Game.prototype.constructor = Game;
 
     p.renderDebug = function() {
         
+        this.mapLayerBackground.debug = true;
+        this.mapLayerBlocking.debug = true;
         this.renderDebugPlayer();
         this.renderDebugCoins();
     };
