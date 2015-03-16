@@ -91,6 +91,8 @@ Game.prototype.constructor = Game;
 
         this.game.load.spritesheet("coin",
             "res/coin.png", 16, 16);
+        this.game.load.spritesheet("bat",
+            "res/bat.png", 32, 32);
     };
 
     p.create = function() {
@@ -115,6 +117,10 @@ Game.prototype.constructor = Game;
         // create coins
         // ------------
         this.game.me.createCoins();
+
+        // create enemies
+        // --------------
+        this.game.me.createEnemies();
 
         // create statuts text
         // -------------------
@@ -175,6 +181,26 @@ Game.prototype.constructor = Game;
 
     };
 
+    p.createEnemies = function() {
+        this.enemies = this.game.add.group();
+        this.enemies.enableBody = true;
+        this.enemies.physicsBodyType = Phaser.Physics.ARCADE;
+        var i=0;
+        var enemy = null;
+        for (i=0; i < this.rulesMap[Game.RULE_ENEMIES]; i++) {
+            var x = this.game.rnd.between(100,700);
+            var y = this.game.rnd.between(100,500);
+                
+            enemy = this.enemies.create(x, y, "bat");
+            enemy.animations.add("up", [0,1,2], 10, true);
+            enemy.animations.add("left", [3,4,5], 10, true);
+            enemy.animations.add("down", [6,7,8], 10, true);
+            enemy.animations.add("right", [9,10,11], 10, true);
+            enemy.animations.play("down");
+            enemy.name = "enemy_" + this.enemies.length;
+        }
+    };
+
     p.createPlayer = function() {
         this.player = this.game.add.sprite(400,300, "player");
         this.player.anchor.set(0.5,0.5);
@@ -191,9 +217,9 @@ Game.prototype.constructor = Game;
         if (!count || typeof(count) == "None") {
             count = this.rulesMap[Game.RULE_COINS];
         }
-        this.game.me.coins = this.game.add.group();
-        this.game.me.coins.enableBody = true;
-        this.game.me.coins.physicsBodyType = Phaser.Physics.ARCADE;
+        this.coins = this.game.add.group();
+        this.coins.enableBody = true;
+        this.coins.physicsBodyType = Phaser.Physics.ARCADE;
 
         var i=0;
         for (i=0; i<count; i++) {
@@ -223,6 +249,7 @@ Game.prototype.constructor = Game;
       
       this.game.me.updateCollisions();
       this.game.me.updatePlayer();
+      this.game.me.updateEnemies();
       this.game.me.updateStatusText();
 
     };
@@ -238,6 +265,13 @@ Game.prototype.constructor = Game;
 
     p.updateCollisions = function() {
         this.game.physics.arcade.overlap(this.player, this.coins, this.onPlayerCoinsOverlap, null, this );
+    };
+
+    p.updateEnemies = function() {
+        var me = this;
+        this.enemies.forEach(function(enemy) {
+            me.game.physics.arcade.moveToObject(enemy, me.player, 30); 
+        });
     };
 
     p.updatePlayer = function() {
