@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" width="20" height="15" tilewidth="32" tileheight="32">
+<map version="1.0" orientation="orthogonal" width="25" height="18" tilewidth="32" tileheight="32">
  <tileset firstgid="1" name="grass" tilewidth="32" tileheight="32">
   <image source="../LPC Base Assets/tiles/grass.png" width="96" height="192"/>
  </tileset>
@@ -9,14 +9,14 @@
  <tileset firstgid="37" name="rock" tilewidth="32" tileheight="32">
   <image source="../LPC Base Assets/tiles/rock.png" width="64" height="32"/>
  </tileset>
- <layer name="backgroundLayer" width="20" height="15">
+ <layer name="backgroundLayer" width="25" height="18">
   <data encoding="base64" compression="zlib">
-   eJxjZ2Bg4KAS5gRiLiDmphLmGTVv1LxR84a0ebxAzEclzA/EAEuXDOU=
+   eJwTYGBgEAJiwWGABehgPq3Dih5xQQ9/0Dou6GWHEJ3ifDjEBz3sEaCTHbQOJyE6+WM07RKHAVEvHeE=
   </data>
  </layer>
- <layer name="blockingLayer" width="20" height="15">
+ <layer name="blockingLayer" width="25" height="18">
   <data encoding="base64" compression="zlib">
-   eJxjYKA+UKUSRjaPGm4aNW/UvFHziDOPmvmXmgAAvEEIYw==
+   eJy9lWEOhSAMg3eEwR28/xXfM5GkqV/hnyYLiN06uoFXVV0f2HrG31pshLV7nI+1vDe8Owf5Kn4G3jbf9X2EfcyAbVub9c6f8DsO8iFdlo/6Kj7Vg3LU+vh+ZviWtEq672Kpvp5P4kj6k/YN2CHYVA8dvQ+63nXzGui6cxTEIL2oZqkviEP3Sb1P/eTzE4dj6bylfiXetA/FpHOmsUnTHccuTx29x+mOOPWu57a7vzy2zulO1LiaYzr/Htd72Tlci9NdNYv1UcwX/6bbfr3WIcU=
   </data>
  </layer>
 </map>
