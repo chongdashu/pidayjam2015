@@ -29,6 +29,8 @@ Game.prototype.constructor = Game;
     Game.RULE_LIVES = "rule:lives";
     Game.RULE_ENEMIES = "rule:enemies";
     Game.RULE_PLAYER_DAMAGE = "rule:player_damager";
+    Game.RULE_PLAYER_XSPEED = "rule:player_xspeed";
+    Game.RULE_PLAYER_YSPEED = "rule:player_yspeed";
     Game.RULE_ENEMY_DAMAGE = "rule:enemy_damage";
     Game.RULE_COINS = "rule:coins";
 
@@ -38,6 +40,8 @@ Game.prototype.constructor = Game;
         Game.RULE_PLAYER_DAMAGE,
         Game.RULE_ENEMY_DAMAGE,
         Game.RULE_COINS,
+        Game.RULE_PLAYER_XSPEED,
+        Game.RULE_PLAYER_YSPEED
     ];
 
     // Phaser game.
@@ -48,12 +52,17 @@ Game.prototype.constructor = Game;
 
     // Player sprite
     p.player = null;
+    
     p.coins = null;
 
     p.coinText = null;
-    p.coinScore = 0;
+    p.rulesText = null;
 
-    p.ruleTexts = null;
+    // Scoring
+    // -------
+    p.livesScore = 0;
+    p.enemiesKilledScore = 0;
+    p.coinScore = 0;
 
     p.initialize = function() {
 
@@ -91,6 +100,10 @@ Game.prototype.constructor = Game;
         // ------------
         this.game.me.createRules();
 
+        // create status
+        // -------------
+        this.game.me.createStatus();
+
         // create game physics
         // -------------------
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -103,43 +116,69 @@ Game.prototype.constructor = Game;
         // ------------
         this.game.me.createCoins();
 
-        // create text: coins
+        // create statuts text
         // -------------------
-        this.game.me.createCoinsText();
+        this.game.me.createStatusText();
 
 
     };
+
+    p.createStatus = function() {
+        this.livesScore = parseInt(this.rulesMap[Game.RULE_LIVES],10);
+        this.playerDamage = parseInt(this.rulesMap[Game.RULE_PLAYER_DAMAGE],10);
+    };
+
 
     p.createRules = function() {
 
         var rules = Game.RULES.slice(0);
         var piString = String(Math.PI);
 
+        this.rulesText = this.game.add.group();
+
         var i=0;
         for (i=0; i < piString.length; i++) {
             if (isNumeric(piString[i])) {
                 var digit = parseInt(piString[i], 10);
                 var rule = Phaser.ArrayUtils.removeRandomItem(rules);
-                console.log("Creating rules from PI: %s -> %s", digit, rule);
+
+                if (rule && typeof(rule) !== "undefined") {
+                    this.rulesMap[rule] = digit;
+                    console.log("Creating rules from PI: %s -> %s", digit, rule);
+
+                    var text = this.game.add.text(16, 400+i*16, piString[i] + ":\t" + rule,
+                        {
+                            font: '12px Courier',
+                            fill: '#fff'
+                        });
+                    this.rulesText.add(text);
+
+                }
+
+                
             }
         }
     };
 
-    p.createCoinsText = function() {
-        var scoreString = 'Coins : ';
-        this.scoreText = this.game.add.text(400, 50,
-                        scoreString + this.coinScore,
-                        {
-                            font: '34px Tahoma',
-                            fill: '#fff'
-                        });
-        this.scoreText.anchor.set(0.5,0.5);
+    p.createStatusText = function() {
+        var fontProp = {
+            font: '14px Courier',
+            fill: '#fff',
+            "text-align": "right"
+        };
+
+        this.statusTextGroup = this.game.add.group();
+
+        this.statusTextGroup.add(this.livesText = this.game.add.text(700, 62, "", fontProp));
+        this.statusTextGroup.add(this.coinsText = this.game.add.text(700, 50, "", fontProp));
+        this.statusTextGroup.add(this.playerDamageText = this.game.add.text(700, 74, "" + this.playerDamage, fontProp));
+
     };
 
     p.createPlayer = function() {
-        this.player = this.game.add.sprite(0,0, "player");
+        this.player = this.game.add.sprite(400,300, "player");
         this.player.anchor.set(0.5,0.5);
-        this.player.position.set(32,96);
+
         this.player.animations.add("up", [0,1,2,3,4,5,6,7,8], 10, true);
         this.player.animations.add("left", [9,10,11,12,13,14,15,16,17], 10, true);
         this.player.animations.add("down", [18,19,20,21,22,23,24,25,26], 10, true);
@@ -150,7 +189,7 @@ Game.prototype.constructor = Game;
 
     p.createCoins = function(count) {
         if (!count || typeof(count) == "None") {
-            count = 10;
+            count = this.rulesMap[Game.RULE_COINS];
         }
         this.game.me.coins = this.game.add.group();
         this.game.me.coins.enableBody = true;
@@ -178,14 +217,23 @@ Game.prototype.constructor = Game;
         console.log("onPlayerCoinsOverlap()");
         coin.kill();
         this.coinScore++;
-        this.scoreText.text = "Coins: " + this.coinScore;
     };
 
     p.update = function() {
       
       this.game.me.updateCollisions();
       this.game.me.updatePlayer();
+      this.game.me.updateStatusText();
 
+    };
+
+    p.updateStatusText = function() {
+        this.coinsText.text = "Coins: " + this.coinScore + "/" + this.rulesMap[Game.RULE_COINS];
+        this.livesText.text = "Lives: " + this.livesScore;
+        this.playerDamageText.text = "Player Damage: " + this.playerDamage;
+
+        this.statusTextGroup.position.set(
+            -10 -this.statusTextGroup.width/2 , 0);
     };
 
     p.updateCollisions = function() {
@@ -193,7 +241,6 @@ Game.prototype.constructor = Game;
     };
 
     p.updatePlayer = function() {
-
 
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
             this.player.animations.play("left");
@@ -234,7 +281,7 @@ Game.prototype.constructor = Game;
     };
 
     p.render = function() {
-        this.game.debug.text("Pi Game Jam 2015", 16, 16);
+        this.game.debug.text("Pi Roulette Arcade Arena - v1.0", 16, 16);
         // this.game.me.renderDebug();
     
     };
