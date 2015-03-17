@@ -27,7 +27,8 @@ Game.prototype.constructor = Game;
 
 
     Game.RULE_LIVES = "rule:lives";
-    Game.RULE_ENEMIES = "rule:enemies";
+    Game.RULE_ENEMY_BATS = "rule:enemy_bats";
+    Game.RULE_ENEMY_SLIMES = "rule:enemy_slimes";
     Game.RULE_PLAYER_DAMAGE = "rule:player_damager";
     Game.RULE_PLAYER_XSPEED = "rule:player_xspeed";
     Game.RULE_PLAYER_YSPEED = "rule:player_yspeed";
@@ -40,7 +41,8 @@ Game.prototype.constructor = Game;
 
     Game.RULES = [
         Game.RULE_LIVES,
-        Game.RULE_ENEMIES,
+        Game.RULE_ENEMY_BATS,
+        Game.RULE_ENEMY_SLIMES,
         Game.RULE_PLAYER_DAMAGE,
         Game.RULE_ENEMY_DAMAGE,
         Game.RULE_COINS,
@@ -56,10 +58,16 @@ Game.prototype.constructor = Game;
     // Rules map.
     p.rulesMap = {};
 
-    // Player sprite
+    // Player
+    // -------
     p.player = null;
-    
+
+    // Groups
+    // ------
     p.coins = null;
+    p.enemies = null;
+    p.bats = null;
+    p.slimes = null;
 
     p.coinText = null;
     p.rulesText = null;
@@ -95,16 +103,13 @@ Game.prototype.constructor = Game;
     p.preload = function() {
         console.log("[Game], preload()");
 
-        this.game.load.spritesheet("player",
-            "res/soldier.png", 64, 64);
+        this.game.load.spritesheet("player", "res/soldier.png", 64, 64);
 
-        this.game.load.spritesheet("coin",
-            "res/coin.png", 16, 16);
-        this.game.load.spritesheet("bat",
-            "res/bat.png", 32, 32);
+        this.game.load.spritesheet("coin", "res/coin.png", 16, 16);
+        this.game.load.spritesheet("bat", "res/bat.png", 32, 32);
+        this.game.load.spritesheet("slime", "res/slime.png", 32, 32);
 
-        this.game.load.tilemap("map_1",
-            "res/map_1.json", null, Phaser.Tilemap.TILED_JSON);
+        this.game.load.tilemap("map_1", "res/map_1.json", null, Phaser.Tilemap.TILED_JSON);
 
         this.game.load.image("grass", "res/grass.png");
         this.game.load.image("dirt", "res/dirt.png");
@@ -230,23 +235,43 @@ Game.prototype.constructor = Game;
 
     p.createEnemies = function() {
         this.enemies = this.game.add.group();
-        this.enemies.enableBody = true;
-        this.enemies.physicsBodyType = Phaser.Physics.ARCADE;
+        
+
+        this.createEnemyGroup(this.bats = this.game.add.group());
+        this.createEnemyGroup(this.slimes = this.game.add.group());
+
         var i=0;
-        var enemy = null;
-        for (i=0; i < this.rulesMap[Game.RULE_ENEMIES]; i++) {
-            var x = this.game.rnd.between(100,700);
-            var y = this.game.rnd.between(100,500);
-                
-            enemy = this.enemies.create(x, y, "bat");
-            enemy.anchor.set(0.5, 0.5);
-            enemy.animations.add("up", [0,1,2], 10, true);
-            enemy.animations.add("left", [3,4,5], 10, true);
-            enemy.animations.add("down", [6,7,8], 10, true);
-            enemy.animations.add("right", [9,10,11], 10, true);
-            enemy.animations.play("down");
-            enemy.name = "enemy_" + this.enemies.length;
+        for (i=0; i < this.rulesMap[Game.RULE_ENEMY_BATS]; i++) {
+            this.createEnemy("bat", this.bats);
         }
+        for (i=0; i < this.rulesMap[Game.RULE_ENEMY_SLIMES]; i++) {
+            this.createEnemy("slime", this.slimes);
+        }
+    };
+
+    p.createEnemyGroup = function(enemyGroup) {
+        enemyGroup.enableBody = true;
+        enemyGroup.physicsBodyType = Phaser.Physics.ARCADE;
+        this.enemies.add(enemyGroup);
+    };
+
+    p.createEnemy = function(name, enemyGroup) {
+        
+        var x = this.game.rnd.between(100,700);
+        var y = this.game.rnd.between(100,500);
+
+        var enemy = enemyGroup.create(x, y, name);
+
+        enemy.name = name + "_" + parseInt(enemyGroup.length-1, 10);
+        
+        enemy.anchor.set(0.5, 0.5);
+        enemy.animations.add("up", [0,1,2], 10, true);
+        enemy.animations.add("left", [3,4,5], 10, true);
+        enemy.animations.add("down", [6,7,8], 10, true);
+        enemy.animations.add("right", [9,10,11], 10, true);
+        enemy.animations.play("down");
+
+        return enemy;
     };
 
     p.createPlayer = function() {
@@ -289,8 +314,8 @@ Game.prototype.constructor = Game;
 
     };
 
+
     p.onPlayerEnemyOverlap = function(player, enemy) {
-        console.log("onPlayerEnemyOverlap()");
         enemy.kill();
         this.livesScore--;
     };
@@ -362,34 +387,60 @@ Game.prototype.constructor = Game;
 
     p.updateCollisions = function() {
         this.game.physics.arcade.overlap(this.player, this.coins, this.onPlayerCoinsOverlap, null, this );
-        this.game.physics.arcade.overlap(this.player, this.enemies, this.onPlayerEnemyOverlap, null, this );
+        this.game.physics.arcade.overlap(this.player, this.bats, this.onPlayerEnemyOverlap, null, this );
         this.game.physics.arcade.collide(this.player, this.mapLayerBlocking);
     };
 
     p.updateEnemies = function() {
         var me = this;
-        this.enemies.forEach(function(enemy) {
-            me.game.physics.arcade.moveToObject(enemy, me.player, me.game.rnd.between(30,50));
-            
-            if (Math.abs(enemy.body.velocity.x) > Math.abs(enemy.body.velocity.y)) {
-                if (enemy.body.velocity.x > 0) {
-                    enemy.animations.play("right");
+
+
+        this.enemies.forEach(function(enemyGroup) {
+            enemyGroup.forEach(function(enemy) {
+                
+                me.updateEnemy(enemy);
+
+                if (Math.abs(enemy.body.velocity.x) > Math.abs(enemy.body.velocity.y)) {
+                    if (enemy.body.velocity.x > 0) {
+                        enemy.animations.play("right");
+                    }
+                    else if (enemy.body.velocity.x < 0) {
+                        enemy.animations.play("left");
+                    }
                 }
-                else if (enemy.body.velocity.x < 0) {
-                    enemy.animations.play("left");
+                else {
+                     if (enemy.body.velocity.y > 0) {
+                        enemy.animations.play("down");
+                    }
+                    else if (enemy.body.velocity.y < 0) {
+                        enemy.animations.play("up");
+                    }
                 }
+            });
+        });
+    };
+
+    p.updateEnemy = function(enemy) {
+        var groupName = enemy.name.split("_")[0];
+        var distanceToPlayerX = Math.abs(enemy.position.x - this.player.position.x);
+        var distanceToPlayerY = Math.abs(enemy.position.y - this.player.position.y);
+
+        if (groupName == "bat") {
+            this.game.physics.arcade.moveToObject(enemy, this.player, this.game.rnd.between(30,50));
+        }
+        else if (groupName == "slime") {
+            if (distanceToPlayerX > distanceToPlayerY) {
+                enemy.body.velocity.set(Phaser.Math.sign(this.player.position.x - enemy.position.x)*90, 0);   
+                
+            }
+            else if (distanceToPlayerX < distanceToPlayerY) {
+                enemy.body.velocity.set(0, Phaser.Math.sign(this.player.position.y - enemy.position.y)*90);
             }
             else {
-                 if (enemy.body.velocity.y > 0) {
-                    enemy.animations.play("down");
-                }
-                else if (enemy.body.velocity.y < 0) {
-                    enemy.animations.play("up");
-                }
+                // enemy.body.velocity.set(this.player.position.x - enemy.position.x, this.player.position.y - enemy.position.y);  
             }
-            
-            
-        });
+        }
+
     };
 
     p.updatePlayer = function() {
@@ -439,7 +490,7 @@ Game.prototype.constructor = Game;
     };
 
     p.render = function() {
-        this.game.debug.text("Pi Roulette Arcade Arena - v1.0", 16, 16);
+        this.game.debug.text("Pi Roulette Arcade Arena - v1.0", 16, 600-8);
         // this.game.me.renderDebug();
     
     };
