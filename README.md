@@ -27,4 +27,5 @@ Usage:
 ## Credits
 
 ### Art
-+ ["Items and Elements" by Jason Em (OpenGameArt)])http://opengameart.org/content/items-and-elements)
++ [Tiles, Monsters, and Heroes from Liberated Pixel Cup](http://lpc.opengameart.org/)
++ ["Items and Elements" by Jason Em from OpenGameArt](http://opengameart.org/content/items-and-elements)

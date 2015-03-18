@@ -624,7 +624,7 @@ Game.prototype.constructor = Game;
     };
 
     p.render = function() {
-        this.game.debug.text("Pi Roulette Arcade Arena - v0.2", 16, 600-8);
+        this.game.debug.text("Pi Roulette Arcade Arena - v0.3", 16, 600-8);
         // this.game.me.renderDebug();
     
     };
