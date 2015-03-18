@@ -33,7 +33,10 @@ Game.prototype.constructor = Game;
     Game.RULE_PLAYER_XSPEED = "rule:player_xspeed";
     Game.RULE_PLAYER_YSPEED = "rule:player_yspeed";
     Game.RULE_ENEMY_DAMAGE = "rule:enemy_damage";
+    Game.RULE_ENEMY_HEALTH = "rule:enemy_health";
     Game.RULE_COINS = "rule:coins";
+    Game.RULE_PROJECTILE_SPEED = "rule:projectile_speed";
+    Game.RULE_PROJECTILE_COUNT = "rule:projectile_count";
 
     Game.STATE_PLAY = "state:play";
     Game.STATE_GAMEOVER = "state:gameover";
@@ -45,9 +48,12 @@ Game.prototype.constructor = Game;
         Game.RULE_ENEMY_SLIMES,
         Game.RULE_PLAYER_DAMAGE,
         Game.RULE_ENEMY_DAMAGE,
+        Game.RULE_ENEMY_HEALTH,
         Game.RULE_COINS,
         Game.RULE_PLAYER_XSPEED,
-        Game.RULE_PLAYER_YSPEED
+        Game.RULE_PLAYER_YSPEED,
+        Game.RULE_PROJECTILE_SPEED,
+        Game.RULE_PROJECTILE_COUNT
     ];
 
     // Phaser game.
@@ -68,6 +74,8 @@ Game.prototype.constructor = Game;
     p.enemies = null;
     p.bats = null;
     p.slimes = null;
+
+    p.projectiles = null;
 
     p.coinText = null;
     p.rulesText = null;
@@ -114,6 +122,8 @@ Game.prototype.constructor = Game;
         this.game.load.image("grass", "res/grass.png");
         this.game.load.image("dirt", "res/dirt.png");
         this.game.load.image("rock", "res/rock.png");
+
+        this.game.load.spritesheet("projectile", "res/projectile.png", 16, 16);
     };
 
     p.create = function() {
@@ -156,6 +166,8 @@ Game.prototype.constructor = Game;
         // create statuts text
         // -------------------
         this.game.me.createStatusText();
+
+
 
 
     };
@@ -230,6 +242,45 @@ Game.prototype.constructor = Game;
         this.statusTextGroup.add(this.playerDamageText = this.game.add.text(700, 50+12*(this.statusTextGroup.length), "" + this.playerDamage, fontProp));
         this.statusTextGroup.add(this.playerXSpeedText = this.game.add.text(700, 50+12*(this.statusTextGroup.length), "" + this.playerXSpeed, fontProp));
         this.statusTextGroup.add(this.playerYSpeedText = this.game.add.text(700, 50+12*(this.statusTextGroup.length), "" + this.playerYSpeed, fontProp));
+        this.statusTextGroup.add(this.projectileCountText = this.game.add.text(700, 50+12*(this.statusTextGroup.length), "" + this.player.projectilCount, fontProp));
+
+    };
+
+    p.createProjectile = function() {
+
+        if (this.player.projectileCount <= 0) { 
+            return;
+        }
+
+        this.player.projectileCount--;
+
+        if (!this.projectiles) {
+            this.projectiles = this.game.add.group();
+            this.projectiles.enableBody = true;
+            this.projectiles.physicsBodyType = Phaser.Physics.ARCADE;
+        }
+
+        var projectile = this.projectiles.create(this.player.x, this.player.y, "projectile");
+        projectile.anchor.set(0.5, 0.5);
+        projectile.animations.add("default", [0,1,2,3,4], 10); // no loop, kill on complete
+        
+
+        var currentAnim = this.player.animations.currentAnim.name;
+
+        var projectileVelocityX = 0;
+        var projectileVelocityY = 0;
+
+        var projectileSpeed = this.rulesMap[Game.RULE_PROJECTILE_SPEED]*250;
+
+        if (currentAnim == "up" || currentAnim == "down") {
+            projectileVelocityY = currentAnim == "up" ? -projectileSpeed : projectileSpeed;
+        }
+        else {
+            projectileVelocityX = currentAnim == "right" ? projectileSpeed : -projectileSpeed;   
+        }
+
+        projectile.body.velocity.set(projectileVelocityX, projectileVelocityY);
+
 
     };
 
@@ -270,6 +321,7 @@ Game.prototype.constructor = Game;
         enemy.animations.add("down", [6,7,8], 10, true);
         enemy.animations.add("right", [9,10,11], 10, true);
         enemy.animations.play("down");
+        enemy.health = this.rulesMap[Game.RULE_ENEMY_HEALTH];
 
         return enemy;
     };
@@ -284,6 +336,8 @@ Game.prototype.constructor = Game;
         this.player.animations.add("right", [27,28,29,30,31,32,33,34,35], 10, true);
         this.game.physics.enable(this.player, Phaser.Physics.ARCADE);
         this.player.body.setSize(48,48,0,8);
+
+        this.player.projectileCount = this.rulesMap[Game.RULE_PROJECTILE_COUNT];
 
         // this.player.body.collideWorldBounds = true;
     };
@@ -314,6 +368,15 @@ Game.prototype.constructor = Game;
 
     };
 
+    p.onProjectileEnemyOverlap = function(projectile, enemy) {
+        projectile.animations.play("default", 10, false, true); // no loop, kill on complete
+        projectile.body.enable = false;
+        console.log(enemy.health);
+        if (--enemy.health <= 0) {
+            enemy.kill();
+        }
+
+    };
 
     p.onPlayerEnemyOverlap = function(player, enemy) {
         enemy.kill();
@@ -380,6 +443,7 @@ Game.prototype.constructor = Game;
         this.playerDamageText.text = "Player Damage: " + this.playerDamage;
         this.playerXSpeedText.text = "Player X-Speed: " + this.playerXSpeed;
         this.playerYSpeedText.text = "Player Y-Speed: " + this.playerYSpeed;
+        this.projectileCountText.text = "Ammo: " + this.player.projectileCount + "/" + this.rulesMap[Game.RULE_PROJECTILE_COUNT];
 
         this.statusTextGroup.position.set(
             -10 -this.statusTextGroup.width/2 , 0);
@@ -388,6 +452,9 @@ Game.prototype.constructor = Game;
     p.updateCollisions = function() {
         this.game.physics.arcade.overlap(this.player, this.coins, this.onPlayerCoinsOverlap, null, this );
         this.game.physics.arcade.overlap(this.player, this.bats, this.onPlayerEnemyOverlap, null, this );
+        this.game.physics.arcade.overlap(this.player, this.slimes, this.onPlayerEnemyOverlap, null, this );
+        this.game.physics.arcade.collide(this.projectiles, this.bats, this.onProjectileEnemyOverlap, null, this);
+        this.game.physics.arcade.collide(this.projectiles, this.slimes, this.onProjectileEnemyOverlap, null, this);
         this.game.physics.arcade.collide(this.player, this.mapLayerBlocking);
     };
 
@@ -473,6 +540,10 @@ Game.prototype.constructor = Game;
         if (!this.game.input.keyboard.isDown(Phaser.Keyboard.UP) &&
             !this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
             this.player.body.velocity.y = 0;
+        }
+
+        if (this.game.input.keyboard.downDuration(Phaser.Keyboard.SPACEBAR, 1)) {
+            this.createProjectile();
         }
 
         if (this.player.body.velocity.y === 0 && this.player.body.velocity.x === 0) {
