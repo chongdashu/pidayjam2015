@@ -29,6 +29,16 @@
             console.log("click");
             me.game.world.removeAll();
             me.create();
+            $("#button-restart").hide();
+
+            $("#game-label").html("Ready?");
+            $("#button-start").show();
+
+            
+        });
+
+        $("#button-start").click(function() {
+            me.start();
         });
 
     });
@@ -45,11 +55,16 @@
 
         </div>
         <div class="ui" style="position: absolute; top: 0px; left: 0px; width: 800px; height: 600px; text-align: center; color: pink">
+
             <div class="ui-text container" style="color: white; position: absolute; left: 0px;  z-index: 1; width:800px; height: 600px;">
-                <span class="span12" style="margin-top: 300px; display: inline-block; text-align: center;">
-                    <span id="game-label" class="label">GAME OVER!</span>
+                <div class="span12 ui-rules" style="margin-top: 350px; position: absolute; text-align: left; display: inline-block; background-color: black; width: 800px; left: 0px; font-style: normal;">
+                    The Pi-Roulette dictates that:<br/>             
+                </div>
+                <span class="span12" style="margin-top: 200px; display: inline-block; text-align: center;">
+                    <span id="game-label" class="label">READY?</span>
                     <br>
-                    <button id="button-restart" type="button" class="btn btn-lg" style="color: black;">Restart</button>
+                    <button id="button-start" type="button" class="btn btn-lg" style="color: black;">START!</button>
+                    <button id="button-restart" type="button" class="btn btn-lg" style="color: black; display: none">Restart</button>
                 </span>
             </div>
             <div class="ui-bg" style="width: 800px; height: 600px; opacity: 0.8; background-color: gray; position: absolute; top: 0px; left: 0px;">

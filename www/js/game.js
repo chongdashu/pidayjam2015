@@ -38,6 +38,7 @@ Game.prototype.constructor = Game;
     Game.RULE_PROJECTILE_SPEED = "rule:projectile_speed";
     Game.RULE_PROJECTILE_COUNT = "rule:projectile_count";
 
+    Game.STATE_START = "state:start";
     Game.STATE_PLAY = "state:play";
     Game.STATE_GAMEOVER = "state:gameover";
     Game.STATE_WIN = "state:win";
@@ -46,8 +47,6 @@ Game.prototype.constructor = Game;
         Game.RULE_LIVES,
         Game.RULE_ENEMY_BATS,
         Game.RULE_ENEMY_SLIMES,
-        Game.RULE_PLAYER_DAMAGE,
-        Game.RULE_ENEMY_DAMAGE,
         Game.RULE_ENEMY_HEALTH,
         Game.RULE_COINS,
         Game.RULE_PLAYER_XSPEED,
@@ -63,6 +62,7 @@ Game.prototype.constructor = Game;
 
     // Rules map.
     p.rulesMap = {};
+    p.rules = [];
 
     // Player
     // -------
@@ -90,7 +90,7 @@ Game.prototype.constructor = Game;
     // -------
 
     p.initialize = function() {
-        $(".ui").hide();
+        
     };
 
     p.initPhaser = function(div) {
@@ -129,11 +129,10 @@ Game.prototype.constructor = Game;
     p.create = function() {
         console.log("[Game], create()");
 
-        this.game.me.state = Game.STATE_PLAY;
+        this.game.me.state = Game.STATE_START;
 
         // hide UI
         // -------
-        $(".ui").hide();
 
         // create rules
         // ------------
@@ -167,9 +166,16 @@ Game.prototype.constructor = Game;
         // -------------------
         this.game.me.createStatusText();
 
+        // create rules text
+        // -----------------
+        this.game.me.createRulesText();
+    };
 
-
-
+    p.start = function() {
+        this.state = Game.STATE_PLAY;
+        $(".ui").hide();
+        $("#button-start").hide();
+        $("#button-restart").show();
     };
 
     p.createMap = function() {
@@ -202,7 +208,9 @@ Game.prototype.constructor = Game;
         var rules = Game.RULES.slice(0);
         var piString = String(Math.PI);
 
-        this.rulesText = this.game.add.group();
+        this.rules = [];
+
+        $(".ui-rules span").remove();
 
         var i=0;
         for (i=0; i < piString.length; i++) {
@@ -213,19 +221,74 @@ Game.prototype.constructor = Game;
                 if (rule && typeof(rule) !== "undefined") {
                     this.rulesMap[rule] = digit;
                     console.log("Creating rules from PI: %s -> %s", digit, rule);
+                    this.rules.push(rule);
 
-                    var text = this.game.add.text(16, 400+i*16, piString[i] + ":\t" + rule,
-                        {
-                            font: '12px Courier',
-                            fill: '#fff'
-                        });
-                    this.rulesText.add(text);
+                    var s = $("<span></span>").addClass("rule").html("The digit [" + digit + "] represents: " + this.getEnglishRule(rule) + "<br>");
+                    $(".ui-rules").append(s);
 
+                    
                 }
-
-                
             }
         }
+
+    };
+
+    p.getEnglishRule = function(rule) {
+        if (rule==Game.RULE_COINS) {
+            return "the number of <span style='color: gold'>coins you need to win!</span>";
+        }
+        else if (rule == Game.RULE_LIVES) {
+            return "the number of <span style='color: red'>lives you have.</span>";
+        }
+        else if (rule == Game.RULE_ENEMY_BATS) {
+            return "the number of <span style='color: purple';>enemy bats</span>.";
+        }
+        else if (rule == Game.RULE_ENEMY_SLIMES) {
+            return "the number of <span style='color: green';>enemy slimes</span>.";
+        }
+        else if (rule == Game.RULE_PLAYER_DAMAGE) {
+            return "the amount of damage you deal.";
+        }
+        else if (rule == Game.RULE_ENEMY_DAMAGE) {
+            return "the amount of damage enemies deal.";
+        }
+        else if (rule == Game.RULE_ENEMY_HEALTH) {
+            return "all <span style='color: maroon';>enemies health</span>.";
+        }
+        else if (rule == Game.RULE_PLAYER_XSPEED) {
+            return "your speed in the <span style='color: silver'>x-direction</span>.";
+        }
+        else if (rule == Game.RULE_PLAYER_YSPEED) {
+            return "your speed in the <span style='color: silver'>y-direction</span>.";
+        }
+        else if (rule == Game.RULE_PROJECTILE_SPEED) {
+            return "your <span style='color: skyblue'>shot speed</span>.";
+        }
+        else if (rule == Game.RULE_PROJECTILE_COUNT) {
+            return "your <span style='color: gray'>ammo.</span>";
+        }
+    };
+
+    p.createRulesText = function() {
+        this.rulesText = this.game.add.group();
+
+        var i=0;
+        for (i=0; i < this.rules.length; i++) {
+
+
+            var rule = this.rules[i];
+            var digit = this.rulesMap[rule]
+            
+            var text = this.game.add.text(32, 100+i*16, digit + ":\t" + rule,
+                {
+                    font: '12px Courier',
+                    fill: '#fff'
+                });
+            this.rulesText.add(text); 
+        }
+
+        
+        this.rulesText.add(text);
     };
 
     p.createStatusText = function() {
@@ -561,7 +624,7 @@ Game.prototype.constructor = Game;
     };
 
     p.render = function() {
-        this.game.debug.text("Pi Roulette Arcade Arena - v1.0", 16, 600-8);
+        this.game.debug.text("Pi Roulette Arcade Arena - v0.2", 16, 600-8);
         // this.game.me.renderDebug();
     
     };
