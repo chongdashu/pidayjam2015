@@ -10,6 +10,6 @@ var init = function() {
 
     // Create phaser context.
     var gameDiv = $(".game").get(0);
-    game.initPhaser(gameDiv);
-};
+    game.initPhaser(gameDiv); 
+}; 
 

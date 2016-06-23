@@ -90,7 +90,7 @@ Game.prototype.constructor = Game;
     // -------
 
     p.initialize = function() {
-        
+
     };
 
     p.initPhaser = function(div) {
@@ -560,7 +560,7 @@ Game.prototype.constructor = Game;
         }
         else if (groupName == "slime") {
             if (distanceToPlayerX > distanceToPlayerY) {
-                enemy.body.velocity.set(Phaser.Math.sign(this.player.position.x - enemy.position.x)*90, 0);   
+                enemy.body.velocity.set(Phaser.Math.sign(this.player.position.x - enemy.position.x)*90, 0);
                 
             }
             else if (distanceToPlayerX < distanceToPlayerY) {
